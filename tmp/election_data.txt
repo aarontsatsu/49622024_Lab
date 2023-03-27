@@ -1,0 +1,45 @@
+[
+  {
+    "year": 2019,
+    "totalVoters": 3,
+    "type": "ASC",
+    "supervisor": "Gyan",
+    "id": "ASC19",
+    "candidates": [
+      "John Manful",
+      "Maame Esi"
+    ],
+    "voters": [
+      {
+        "voter_id": 1
+      },
+      {
+        "voter_id": 3
+      },
+      {
+        "voter_id": "2"
+      }
+    ]
+  },
+  {
+    "year": 2021,
+    "totalVoters": 2,
+    "type": "MCF",
+    "supervisor": "Addo",
+    "id": "MCF21",
+    "candidates": [
+      "Abigail Animah",
+      "Ewurama",
+      "John Salifu",
+      "John Claude"
+    ],
+    "voters": [
+      {
+        "id": "1"
+      },
+      {
+        "id": "3"
+      }
+    ]
+  }
+]

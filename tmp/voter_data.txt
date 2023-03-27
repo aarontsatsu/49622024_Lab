@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Aaron",
+    "email": "aaron.tamakloe@ashesi.edu.gh",
+    "class": "2024",
+    "id": 1
+  },
+  {
+    "name": "Oliver",
+    "email": "oliver@ashesi.edu.gh",
+    "class": "2023",
+    "id": 3
+  },
+  {
+    "name": "John",
+    "email": "john.manful@ashesi.edu.gh",
+    "class": "2024",
+    "id": 2
+  },
+  {
+    "name": "Dickson",
+    "email": "dickson.akubia@ashesi.edu.gh",
+    "class": "2023",
+    "id": 4
+  },
+  {
+    "name": "Kelvin",
+    "email": "kelvin.anim@ashesi.edu.gh",
+    "class": "2023",
+    "id": 5
+  }
+]
