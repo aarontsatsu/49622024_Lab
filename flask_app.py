@@ -34,9 +34,22 @@ def get_voters_byID(voter_id):
         return jsonify(voter_dict), 200
     return jsonify({'message': 'Voter ID not found'}), 404
 
-# @app.route('/voters', methods=['POST'])
-# def create_voter():
-#     record = json.loads(request.data)
+@app.route('/voters', methods=['POST'])
+def create_voter():
+    record = json.loads(request.data)
+
+    voters_data = db.collection('voters')
+    query_check = voters_data.where('id', '==', record['id'])
+    voters = query_check.stream()
+
+    for voter in voters:
+        return jsonify({'message':f'User with id {record["id"]} already exists.'}), 400
+    
+    voter_data = voters_data.document()
+    voter_data.set(record)
+    record['id'] = voter_data.id
+
+    return jsonify(record), 201
 
 #     with open('./tmp/voter_data.txt', 'r') as f:
 #         data = f.read()
