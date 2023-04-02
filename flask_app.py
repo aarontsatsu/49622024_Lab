@@ -92,21 +92,23 @@ def delete_voter(voter_id):
     return jsonify({"message":f"Voter {voter_id} deleted successfully"}), 204
 
 
-# """
-#     Elections Resource
-# """
-# @app.route('/elections', methods=['GET'])
-# def get_elections():
-#     with open('./tmp/election_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
-#         results = []
+"""
+    Elections Resource
+"""
+@app.route('/elections', methods=['GET'])
+def get_elections():
+    elections_data = db.collection('elections')
+    elections = elections_data.stream()
+    result = []
 
-#         for record in records:
-#             results.append(record)
-#         if len(results) > 0:
-#             return jsonify(results), 200
-#         return jsonify({"error":"No elections found"}), 404
+    for election in elections:
+        election_dict = election.to_dict()
+        election_dict['id'] = election.id
+        result.append(election_dict)
+    if len(result) > 0:
+        return jsonify(result), 200
+    else:
+        return jsonify({"error":"No elections found"}), 404
 
 # @app.route('/elections/<string:election_id>', methods=['GET'])
 # def get_election_byID(election_id):
