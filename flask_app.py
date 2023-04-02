@@ -51,65 +51,45 @@ def create_voter():
 
     return jsonify(record), 201
 
-#     with open('./tmp/voter_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
+@app.route('/voters/<string:voter_id>', methods=['PATCH'])
+def update_voter(voter_id):
+    voter_data = db.collection('voters').document(voter_id)
+    voter_doc = voter_data.get()
+    if not voter_doc.exists:
+        return jsonify({"error":f"Voter with ID {voter_id} not found"}), 404
 
-#     for r in records:
-#         if r['id'] == record['id']:
-#             return jsonify({'message':f'User with id {record["id"]} already exists.'}), 400
-#         if r['email'] == record['email']:
-#             return jsonify({'message':f'User with email {record["email"]} already exists.'}), 400
+    voter_info = voter_doc.to_dict()
+    if 'name' in request.json:
+        voter_info['name'] = request.json['name']
+
     
-#     records.append(record), 201
+    if 'email' in request.json:
+        updated_email = request.json['email']
+        voters_query = db.collection('voters').where('email', '==', updated_email).get()
 
-#     with open('./tmp/voter_data.txt', 'w') as f:
-#         f.write(json.dumps(records, indent=2))
-#     return jsonify(record)
-
-# @app.route('/voters/<int:voter_id>', methods=['PATCH'])
-# def update_voter(voter_id):
-#     with open('./tmp/voter_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
-
-#         for record in records:
-#             if record['id'] == voter_id:
-#                 if 'name' in request.json:
-#                     record['name'] = request.json['name']
-#                 if 'email' in request.json:
-#                     # check if the updated email already exists
-#                     updated_email = request.json['email']
-#                     for r in records:
-#                         if r['email'] == updated_email and r['id'] != voter_id:
-#                             return jsonify({"error":f"Email {updated_email} already exists"}), 400
-#                     record['email'] = request.json['email']
-#                 if 'class' in request.json:
-#                     record['class'] = request.json['class']
-#                 with open('./tmp/voter_data.txt', 'w') as f:
-#                     f.write(json.dumps(records, indent=2))
-#                 return jsonify(record), 200
-#         return jsonify({"error":f"Voter with ID {voter_id} not found"}), 404
+        for v in voters_query:
+            if v.id != voter_id:
+                return jsonify({"error":f"Email {updated_email} already exists"}), 400
+        voter_info['email'] = updated_email
+    
+    
+    if 'class' in request.json:
+        voter_info['class'] = request.json['class']
+    
+    voter_data.set(voter_info)
+    return jsonify(voter_info), 200
                 
-# @app.route('/voters/<int:voter_id>', methods=['DELETE'])
-# def delete_voter(voter_id):
-#     new_records = []
-#     with open('./tmp/voter_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
-#         voter_found = False
+@app.route('/voters/<string:voter_id>', methods=['DELETE'])
+def delete_voter(voter_id):
+    voter_data = db.collection('voters').document(voter_id)
+    voter_doc = voter_data.get()
 
-#         for r in records:
-#             if r['id'] == voter_id:
-#                 voter_found = True
-#                 continue
-#             new_records.append(r)
-#         if not voter_found:
-#             return jsonify({"error":f"Voter with ID {voter_id} not found"}), 400
-
-#     with open('./tmp/voter_data.txt', 'w') as f:
-#         f.write(json.dumps(new_records, indent=2))
-#     return jsonify({"message":f"Voter {voter_id} deleted successfully"}), 204
+    if not voter_doc.exists:
+        return jsonify({"error":f"Voter with ID {voter_id} not found"}), 404
+    
+    voter_data.delete()
+    
+    return jsonify({"message":f"Voter {voter_id} deleted successfully"}), 204
 
 
 # """
