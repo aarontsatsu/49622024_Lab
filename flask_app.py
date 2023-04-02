@@ -110,16 +110,16 @@ def get_elections():
     else:
         return jsonify({"error":"No elections found"}), 404
 
-# @app.route('/elections/<string:election_id>', methods=['GET'])
-# def get_election_byID(election_id):
-#     with open('./tmp/election_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
-        
-#         for record in records:
-#             if election_id in str(record['id']):
-#                 return jsonify(record), 200
-#         return jsonify({"error":f"Election with ID {election_id} not found"}), 404
+@app.route('/elections/<string:election_id>', methods=['GET'])
+def get_election_byID(election_id):
+    elections_data = db.collection('elections').document(election_id)
+    election = elections_data.get()
+
+    if election.exists:
+        election_dict = election.to_dict()
+        election_dict['id'] = election.id
+        return jsonify(election_dict), 200
+    return jsonify({"error":f"Election with ID {election_id} not found"}), 404
 
 # @app.route('/elections', methods=['POST'])
 # def create_election():
