@@ -138,13 +138,21 @@ def create_election():
 
     return jsonify(record), 201
 
-# # vote in an election
-# """
-#     Implementation Style: A user successfully votes if they are able to get their user_id into the 'voters' field of an election.
-#     Duplicates are not allowed. 
-# """
-# @app.route('/elections/<string:election_id>', methods=['POST'])
-# def vote_in_election(election_id):
+# vote in an election
+"""
+    Implementation Style: A user successfully votes if they are able to get their user_id into the 'voters' field of an election.
+    Duplicates are not allowed. 
+"""
+@app.route('/elections/<string:election_id>', methods=['POST'])
+def vote_in_election(election_id):
+    elections_data = db.collection('elections').document(election_id)
+    election_doc = elections_data.get()
+
+    if not election_doc.exists:
+        return jsonify({"error":f"Election with ID {election_id} not found"}), 404
+    
+    election_dict = election_doc.to_dict()
+
 #     with open('./tmp/election_data.txt', 'r') as f:
 #         data = f.read()
 #         records = json.loads(data)
@@ -167,8 +175,19 @@ def create_election():
 #             return jsonify({"message":f"You have voted successfully"}), 200
 #     return jsonify({"error":f"Election with ID {election_id} not found"}), 404
 
-# @app.route('/elections/<string:election_id>', methods=['DELETE'])
-# def delete_election(election_id):
+@app.route('/elections/<string:election_id>', methods=['DELETE'])
+def delete_election(election_id):
+    election_data = db.collection('elections').document(election_id)
+    election_doc = election_data.get()
+
+    if not election_doc.exists:
+        return jsonify({"error":f"Election with ID {election_id} not found"}), 404
+    
+    election_data.delete()
+    
+    return jsonify({"message":f"Election {election_id} deleted successfully"}), 204
+
+
 #     new_records = [] #holds the updated data after deletion
 #     with open('./tmp/election_data.txt', 'r') as f:
 #         data = f.read()
