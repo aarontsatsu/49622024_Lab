@@ -177,40 +177,19 @@ def delete_election(election_id):
     
     return jsonify({"message":f"Election {election_id} deleted successfully"}), 204
 
+@app.route('/elections/<string:election_id>', methods=['PUT'])
+def update_candidates(election_id):
+    elections_data = db.collection('elections').document(election_id)
+    election_doc = elections_data.get()
 
-#     new_records = [] #holds the updated data after deletion
-#     with open('./tmp/election_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
-#         election_found = False
-
-#         for record in records:
-#             if record['id'] in election_id:
-#                 election_found = True
-#                 continue
-#             new_records.append(record)
-#         if not election_found:
-#             return jsonify({"error":f"Election with ID {election_id} not found"}), 404
-        
-#     with open('./tmp/election_data.txt', 'w') as f:
-#         f.write(json.dumps(new_records, indent=2))
-#     return jsonify({"message":f"Election {election_id} deleted successfully"}), 204
-
-# @app.route('/elections/<string:election_id>', methods=['PUT'])
-# def update_candidates(election_id):
-#     with open('./tmp/election_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
-
-#         for record in records:
-#             if election_id in str(record['id']):
-#                 record['candidates'] = request.json['candidates']
-
-#                 with open('./tmp/election_data.txt', 'w') as f:
-#                     f.write(json.dumps(records, indent=2))
-#                 return jsonify({"message":"Election candidates list updated successfully."}), 200
-#         return jsonify({"error":f"Election with ID {election_id} not found"}), 404
+    if not election_doc.exists:
+        return jsonify({"error":f"Election with ID {election_id} not found"}), 404
+    
+    election_info = election_doc.to_dict()
+    election_info['candidates'] = request.json['candidates']
+    elections_data.set(election_info)
+    return jsonify({"message":"Election candidates list updated successfully."}), 200
 
 
-
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
