@@ -152,28 +152,18 @@ def vote_in_election(election_id):
         return jsonify({"error":f"Election with ID {election_id} not found"}), 404
     
     election_dict = election_doc.to_dict()
+    voters = election_dict['voters']
+    num_voters = len(voters)
 
-#     with open('./tmp/election_data.txt', 'r') as f:
-#         data = f.read()
-#         records = json.loads(data)
+    for voter in request.json['voters']:
+        if any(voter['voter_id'] == v['voter_id'] for v in voters):
+            return jsonify({"error":f"Voter with ID {voter['voter_id']} has already voted."}), 400
+        voters.append(voter)
+        num_voters +=1
 
-#     for record in records:
-#         if election_id in str(record['id']): #checks if the election ID provided exists
-#             voters = record['voters']
-#             num_voters = len(voters) #keeps track of the total number of voters in an election
-
-#             for voter in request.json['voters']:
-#                 if any(voter['voter_id'] == v['voter_id'] for v in voters):
-#                     return jsonify({"error":f"Voter with ID {voter['voter_id']} has already voted."}), 400
-#                 voters.append(voter)
-#                 num_voters +=1
-
-#             # update the value of totalVoters to include the new vote casted
-#             record['totalVoters'] = num_voters
-#             with open('./tmp/election_data.txt', 'w') as f:
-#                 f.write(json.dumps(records, indent=2))
-#             return jsonify({"message":f"You have voted successfully"}), 200
-#     return jsonify({"error":f"Election with ID {election_id} not found"}), 404
+        election_dict['totalVoters'] = num_voters
+        elections_data.set(election_dict)
+        return jsonify({"message":f"You have voted successfully"}), 200 
 
 @app.route('/elections/<string:election_id>', methods=['DELETE'])
 def delete_election(election_id):
