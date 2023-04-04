@@ -1,4 +1,4 @@
-import json
+import json, os.path, functions_framework
 from flask import Flask, request, jsonify
 from google.cloud import firestore
 
@@ -10,7 +10,47 @@ app = Flask(__name__)
 """
     Voters Resource
 """
-@app.route('/voters', methods=['GET'])
+
+@functions_framework.http
+def entry_point(request):
+    if 'voters' in request.path:
+        if request.method == 'GET' and 'id' in request.args:
+            get_path = os.path.split(request.path)[-1]
+            return get_voters_byID(get_path)
+        elif request.method == 'GET':
+            return get_voters()
+        elif request.method == 'POST':
+            return create_voter()
+        elif request.method == 'PATCH':
+            get_path = os.path.split(request.path)[-1]
+            return update_voter(get_path)
+        elif request.method == 'DELETE':
+            get_path = os.path.split(request.path)[-1]
+            return delete_voter(get_path)
+    
+    elif 'elections' in request.path:
+        if request.method == 'GET' and 'id' in request.args:
+            get_path = get_path = os.path.split(request.path)[-1]
+            return get_election_byID(get_path)
+        elif request.method == 'GET':
+            return get_elections()
+        elif request.method == 'POST':
+            return create_election()
+        elif request.method == 'POST' and 'id' in request.args:
+            get_path = os.path.split(request.path)[-1]
+            return vote_in_election(get_path)
+        elif request.method == 'DELETE':
+            get_path = os.path.split(request.path)[-1]
+            return delete_election(get_path)
+        elif request.method == 'PUT':
+            get_path = os.path.split(request.path)[-1]
+            return update_candidates(get_path)
+    else:
+        return ({"error": "endpoint not found"})
+
+
+
+# @app.route('/voters', methods=['GET'])
 def get_voters():
     voters_data = db.collection('voters')
     voters = voters_data.stream()
@@ -23,7 +63,7 @@ def get_voters():
         return jsonify(result), 200
     return jsonify({'error': 'data not found'}), 404
     
-@app.route('/voters/<string:voter_id>', methods=['GET'])
+# @app.route('/voters/<string:voter_id>', methods=['GET'])
 def get_voters_byID(voter_id):
     voters_data = db.collection('voters').document(voter_id)
     voter = voters_data.get()
@@ -34,7 +74,7 @@ def get_voters_byID(voter_id):
         return jsonify(voter_dict), 200
     return jsonify({'message': 'Voter ID not found'}), 404
 
-@app.route('/voters', methods=['POST'])
+# @app.route('/voters', methods=['POST'])
 def create_voter():
     record = json.loads(request.data)
 
@@ -51,7 +91,7 @@ def create_voter():
 
     return jsonify(record), 201
 
-@app.route('/voters/<string:voter_id>', methods=['PATCH'])
+# @app.route('/voters/<string:voter_id>', methods=['PATCH'])
 def update_voter(voter_id):
     voter_data = db.collection('voters').document(voter_id)
     voter_doc = voter_data.get()
@@ -67,19 +107,20 @@ def update_voter(voter_id):
         updated_email = request.json['email']
         voters_query = db.collection('voters').where('email', '==', updated_email).get()
 
+
         for v in voters_query:
             if v.id != voter_id:
                 return jsonify({"error":f"Email {updated_email} already exists"}), 400
-        voter_info['email'] = updated_email
-    
-    
+            voter_info['email'] = updated_email
+            
+            
     if 'class' in request.json:
         voter_info['class'] = request.json['class']
     
     voter_data.set(voter_info)
     return jsonify(voter_info), 200
                 
-@app.route('/voters/<string:voter_id>', methods=['DELETE'])
+# @app.route('/voters/<string:voter_id>', methods=['DELETE'])
 def delete_voter(voter_id):
     voter_data = db.collection('voters').document(voter_id)
     voter_doc = voter_data.get()
@@ -89,13 +130,13 @@ def delete_voter(voter_id):
     
     voter_data.delete()
     
-    return jsonify({"message":f"Voter {voter_id} deleted successfully"}), 204
+    return jsonify({"message":f"Voter {voter_id} deleted successfully"}), 200
 
 
 """
     Elections Resource
 """
-@app.route('/elections', methods=['GET'])
+# @app.route('/elections', methods=['GET'])
 def get_elections():
     elections_data = db.collection('elections')
     elections = elections_data.stream()
@@ -110,7 +151,7 @@ def get_elections():
     else:
         return jsonify({"error":"No elections found"}), 404
 
-@app.route('/elections/<string:election_id>', methods=['GET'])
+# @app.route('/elections/<string:election_id>', methods=['GET'])
 def get_election_byID(election_id):
     elections_data = db.collection('elections').document(election_id)
     election = elections_data.get()
@@ -121,7 +162,7 @@ def get_election_byID(election_id):
         return jsonify(election_dict), 200
     return jsonify({"error":f"Election with ID {election_id} not found"}), 404
 
-@app.route('/elections', methods=['POST'])
+# @app.route('/elections', methods=['POST'])
 def create_election():
     record = json.loads(request.data)
 
@@ -143,7 +184,7 @@ def create_election():
     Implementation Style: A user successfully votes if they are able to get their user_id into the 'voters' field of an election.
     Duplicates are not allowed. 
 """
-@app.route('/elections/<string:election_id>', methods=['POST'])
+# @app.route('/elections/<string:election_id>', methods=['POST'])
 def vote_in_election(election_id):
     elections_data = db.collection('elections').document(election_id)
     election_doc = elections_data.get()
@@ -163,9 +204,9 @@ def vote_in_election(election_id):
 
         election_dict['totalVoters'] = num_voters
         elections_data.set(election_dict)
-        return jsonify({"message":f"You have voted successfully"}), 200 
+    return jsonify({"message":f"You have voted successfully"}), 200 
 
-@app.route('/elections/<string:election_id>', methods=['DELETE'])
+# @app.route('/elections/<string:election_id>', methods=['DELETE'])
 def delete_election(election_id):
     election_data = db.collection('elections').document(election_id)
     election_doc = election_data.get()
@@ -177,14 +218,14 @@ def delete_election(election_id):
     
     return jsonify({"message":f"Election {election_id} deleted successfully"}), 204
 
-@app.route('/elections/<string:election_id>', methods=['PUT'])
+# @app.route('/elections/<string:election_id>', methods=['PUT'])
 def update_candidates(election_id):
     elections_data = db.collection('elections').document(election_id)
     election_doc = elections_data.get()
 
     if not election_doc.exists:
         return jsonify({"error":f"Election with ID {election_id} not found"}), 404
-    
+        
     election_info = election_doc.to_dict()
     election_info['candidates'] = request.json['candidates']
     elections_data.set(election_info)
